@@ -10,7 +10,8 @@ use instrumentation::Instrumentation;
 use opentelemetry::global;
 use opentelemetry_sdk::trace::TracerProvider as SdkTracerProvider;
 use tracing::info;
-#[tokio::main(flavor = "current_thread")] // ✅ Single-threaded Tokio runtime
+
+#[tokio::main(flavor = "multi_thread")] // ✅ Multi-threaded runtime
 async fn main() -> Result<()> {
     let exporter = opentelemetry_stdout::SpanExporter::default();
     let provider = SdkTracerProvider::builder()
