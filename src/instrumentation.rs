@@ -11,6 +11,7 @@ pub struct Instrumentation {
 
 impl Instrumentation {
     pub fn new() -> Result<Self> {
+        println!("Initializing instrumentation...");
         let (event_sender, event_receiver) = mpsc::channel(100);
         let controller = Arc::new(Mutex::new(Controller::new(event_receiver)?)); // ✅ Wrap Controller in Arc<Mutex<>>
         let mut manager = Manager::new(controller.clone())?;
@@ -28,6 +29,7 @@ impl Instrumentation {
     }
 
     pub async fn run(&self) -> Result<()> {
+        println!("Running instrumentation...");
         let controller = self.controller.clone();
         tokio::spawn(async move {
             let mut controller_guard = controller.lock().await; // ✅ Lock controller for mutability
