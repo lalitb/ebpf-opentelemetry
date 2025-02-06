@@ -3,7 +3,7 @@ use crate::probe::Probe;
 use anyhow::Result;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tokio::task;
+use tokio::task::{spawn_local, LocalSet};
 
 pub struct Manager {
     probes: Vec<Arc<Probe>>,
@@ -24,9 +24,11 @@ impl Manager {
     }
 
     pub async fn run(&self) -> Result<()> {
+        let local_set = LocalSet::new(); // ✅ Create a `LocalSet`
+
         for probe in &self.probes {
             let probe = Arc::clone(probe);
-            task::spawn(async move {
+            local_set.spawn_local(async move {
                 let probe_guard = probe.bpf_object.lock().await; // ✅ Lock bpf_object inside async block
 
                 if let Err(e) = probe.run().await {
