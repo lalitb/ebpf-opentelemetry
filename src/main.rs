@@ -10,6 +10,8 @@ use instrumentation::Instrumentation;
 use opentelemetry::global;
 use opentelemetry_sdk::trace::TracerProvider as SdkTracerProvider;
 use tracing::info;
+use std::{thread::sleep, time::Duration};
+
 
 fn my_test_function() {
     println!("🚀 my_test_function() is executing...");
