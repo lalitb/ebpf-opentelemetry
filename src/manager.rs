@@ -31,7 +31,7 @@ impl Manager {
             println!("Iterating over probes...");
             let probe = Arc::clone(probe);
             local_set.spawn_local(async move {
-
+                println!("Spawning probe run...");
                 let probe_guard = probe.bpf_object.lock().await; // ✅ Lock bpf_object inside async block
 
                 if let Err(e) = probe.run().await {
@@ -41,6 +41,8 @@ impl Manager {
                 }
             });
         }
+        local_set.await;  // ✅ Ensure `spawn_local()` tasks are executed
+
         Ok(())
     }
 }
