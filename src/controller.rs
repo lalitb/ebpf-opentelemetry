@@ -28,6 +28,7 @@ impl Controller {
     pub async fn run(&mut self) -> Result<()> {
         while let Some(event) = self.event_receiver.recv().await {
             self.trace(event)?;
+            println!("Received event: {:?}", event);
         }
         Ok(())
     }
