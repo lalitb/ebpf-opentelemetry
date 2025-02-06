@@ -15,15 +15,20 @@ fn main() {
     let status = Command::new("clang")
         .args(&[
             "-O2",
+            "-g", // Enable debug symbols (needed for BTF)
             "-target",
             "bpf",
             "-c",
             bpf_source,
             "-o",
             bpf_output.to_str().unwrap(),
+            "-D__KERNEL__",      // Required for kernel eBPF
+            "-D__BPF_TRACING__", // Required for tracing BPF programs
+            "-Wall",
+            "-Werror",
         ])
         .status()
-        .expect("Failed to compile eBPF program");
+        .expect("Failed to execute clang");
 
     if !status.success() {
         panic!("eBPF compilation failed");
@@ -31,4 +36,5 @@ fn main() {
 
     // Inform Cargo to watch the eBPF source file for changes
     println!("cargo:rerun-if-changed={}", bpf_source);
+    println!("cargo:rustc-env=BPF_OBJECT={}", bpf_output.display());
 }

@@ -1,10 +1,10 @@
 use libbpf_rs::MapCore;
 use libbpf_rs::ObjectBuilder; // PerfBuffer};
+use std::env;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
-use std::path::PathBuf;
-use std::env;
 
 pub struct Probe {
     pub(crate) bpf_object: Arc<Mutex<libbpf_rs::Object>>,
@@ -48,9 +48,8 @@ impl Probe {
         let bpf_path = PathBuf::from(out_dir).join("probe.bpf.o");
         println!("Loading eBPF program from: {:?}", bpf_path);
 
-        let obj = ObjectBuilder::default()
-            .open(bpf_path.to_str().unwrap())
-            .load()?;
+        let open_obj = ObjectBuilder::default().open_file(bpf_path.to_str().unwrap())?;
+        let obj = open_obj.load()?;
         println!("Loaded eBPF program for probe: {}", name);
 
         Ok(Self {
