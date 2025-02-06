@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
+    println!("---->cargo:rerun-if-changed=build.rs");
     // Get the output directory for compiled artifacts
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR environment variable not set");
 
