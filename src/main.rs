@@ -13,7 +13,7 @@ use tracing::info;
 use std::{thread::sleep, time::Duration};
 
 
-fn my_test_function() {
+fn target_function() {
     println!("🚀 my_test_function() is executing...");
 }
 
@@ -27,7 +27,7 @@ async fn main() -> Result<()> {
     info!("OpenTelemetry tracing initialized with stdout exporter");
     sleep(Duration::from_secs(5));
 
-    my_test_function(); // ✅ eBPF will now capture this
+    target_function(); // ✅ eBPF will now capture this
 
     let instrumentation = Instrumentation::new()?;
     instrumentation.run().await?;
