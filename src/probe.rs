@@ -64,6 +64,7 @@ impl Probe {
     }
 
     pub async fn run(&self) -> Result<()> {
+        println!("Running probe...");
         let mut ringbuf_builder = RingBufferBuilder::new();
         let bpf_object = self.bpf_object.lock().await;
         let events_map = bpf_object

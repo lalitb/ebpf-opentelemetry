@@ -24,6 +24,7 @@ impl Manager {
     }
 
     pub async fn run(&self) -> Result<()> {
+        println!("Running manager...");
         let local_set = LocalSet::new(); // ✅ Create a `LocalSet`
 
         for probe in &self.probes {
