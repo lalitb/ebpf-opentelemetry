@@ -12,6 +12,7 @@ struct event_t {
     u_int64_t timestamp_end;
     u_int32_t pid;
     char comm[16];
+
 };
 
 // Function to send event using ring buffer
@@ -25,7 +26,7 @@ static __always_inline void send_event(struct event_t *event) {
 }
 
 // Function entry
-SEC("uprobe/target_function")
+SEC("uprobe//proc/self/exe:target_function")
 int trace_function_entry(struct pt_regs *ctx) {
     struct event_t event = {};
     event.timestamp_start = bpf_ktime_get_ns();
@@ -37,7 +38,7 @@ int trace_function_entry(struct pt_regs *ctx) {
 }
 
 // Function exit
-SEC("uretprobe/target_function")
+SEC("uprobe//proc/self/exe:target_function")
 int trace_function_exit(struct pt_regs *ctx) {
     struct event_t event = {};
     event.timestamp_end = bpf_ktime_get_ns();

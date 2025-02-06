@@ -14,7 +14,7 @@ use std::{thread::sleep, time::Duration};
 
 #[inline(never)]
 fn target_function() {
-    println!("🚀 my_test_function() is executing...");
+    println!("🚀 target_function() is executing...");
 }
 
 #[tokio::main(flavor = "multi_thread")] // ✅ Multi-threaded runtime
