@@ -16,27 +16,32 @@ use libbpf_rs::RingBufferBuilder;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
+#[repr(C)] // Ensure correct memory layout
 pub struct BPFEvent {
-    pub name: String,
+    pub timestamp_start: u64,
+    pub timestamp_end: u64,
     pub pid: u32,
-    pub timestamp: u64,
-    pub additional_data: String, // Extend as needed for more fields
+    pub comm: [u8; 16], // Fixed-size array to match `char comm[16]` in C
 }
 
 impl BPFEvent {
     pub fn parse(data: &[u8]) -> anyhow::Result<Self> {
-        // Example deserialization logic
-        let name = String::from_utf8(data[0..16].to_vec())?
-            .trim_end_matches('\0')
-            .to_string();
+        if data.len() < 28 {
+            return Err(anyhow::anyhow!("Invalid event data size"));
+        }
+
+        let timestamp_start = u64::from_ne_bytes(data[0..8].try_into()?);
+        let timestamp_end = u64::from_ne_bytes(data[8..16].try_into()?);
         let pid = u32::from_ne_bytes(data[16..20].try_into()?);
-        let timestamp = u64::from_ne_bytes(data[20..28].try_into()?);
+
+        let mut comm = [0u8; 16]; // Fixed-size array
+        comm.copy_from_slice(&data[20..36]); // Copy only 16 bytes
 
         Ok(Self {
-            name,
+            timestamp_start,
+            timestamp_end,
             pid,
-            timestamp,
-            additional_data: "Example".to_string(),
+            comm,
         })
     }
 }

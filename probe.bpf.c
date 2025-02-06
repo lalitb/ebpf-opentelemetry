@@ -3,8 +3,8 @@
 #include <sys/types.h>
 
 struct {
-    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);
-    __uint(max_entries, 1024);
+    __uint(type, BPF_MAP_TYPE_RINGBUF);  // ✅ Use Ring Buffer
+    __uint(max_entries, 4096);           // ✅ Set the buffer size (adjust as needed)
 } events SEC(".maps");
 
 struct event_t {
@@ -14,6 +14,16 @@ struct event_t {
     char comm[16];
 };
 
+// Function to send event using ring buffer
+static __always_inline void send_event(struct event_t *event) {
+    void *ringbuf_event = bpf_ringbuf_reserve(&events, sizeof(*event), 0);
+    if (!ringbuf_event)
+        return;
+    
+    __builtin_memcpy(ringbuf_event, event, sizeof(*event));
+    bpf_ringbuf_submit(ringbuf_event, 0);
+}
+
 // Function entry
 SEC("uprobe/target_function")
 int trace_function_entry(struct pt_regs *ctx) {
@@ -21,7 +31,8 @@ int trace_function_entry(struct pt_regs *ctx) {
     event.timestamp_start = bpf_ktime_get_ns();
     event.pid = bpf_get_current_pid_tgid() >> 32;
     bpf_get_current_comm(&event.comm, sizeof(event.comm));
-    bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
+    
+    send_event(&event);  // ✅ Send event to ring buffer
     return 0;
 }
 
@@ -31,7 +42,8 @@ int trace_function_exit(struct pt_regs *ctx) {
     struct event_t event = {};
     event.timestamp_end = bpf_ktime_get_ns();
     event.pid = bpf_get_current_pid_tgid() >> 32;
-    bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
+    
+    send_event(&event);  // ✅ Send event to ring buffer
     return 0;
 }
 
