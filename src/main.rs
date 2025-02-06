@@ -12,7 +12,7 @@ use opentelemetry_sdk::trace::TracerProvider as SdkTracerProvider;
 use tracing::info;
 use std::{thread::sleep, time::Duration};
 
-
+#[inline(never)]
 fn target_function() {
     println!("🚀 my_test_function() is executing...");
 }
