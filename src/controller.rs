@@ -33,16 +33,18 @@ impl Controller {
     }
 
     fn trace(&self, event: BPFEvent) -> TraceResult<()> {
-        let span_name = event.name.clone();
+        let span_name = format!("bpf_event: {}", String::from_utf8_lossy(&event.comm));
+        //let span_name = event.name.clone();
         let mut span = self
             .tracer
             .span_builder(span_name)
             .with_start_time(
-                std::time::UNIX_EPOCH + std::time::Duration::from_nanos(event.timestamp),
+                std::time::UNIX_EPOCH + std::time::Duration::from_nanos(event.timestamp_start),
             )
             .with_attributes(vec![
                 KeyValue::new("pid", event.pid as i64),
-                KeyValue::new("additional_data", event.additional_data.clone()),
+                KeyValue::new("timestamp_start", event.timestamp_start as i64),
+                KeyValue::new("timestamp_end", event.timestamp_end as i64),
             ])
             .start(&self.tracer);
 
