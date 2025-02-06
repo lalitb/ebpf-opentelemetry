@@ -39,12 +39,18 @@ impl BPFEvent {
     }
 }
 
-const BPF_OBJECT: &[u8] = include_bytes!(env!("BPF_OBJECT"));
-
 impl Probe {
     pub fn new(name: &str, event_channel: Sender<BPFEvent>) -> Result<Self> {
-        let obj = ObjectBuilder::default().open_memory(BPF_OBJECT)?.load()?;
+        let out_dir = env::var("OUT_DIR").unwrap_or_else(|_| "target/debug".to_string());
+
+        let bpf_path = PathBuf::from(out_dir).join("probe.bpf.o");
+        println!("Loading eBPF program from: {:?}", bpf_path);
+
+        let obj = ObjectBuilder::default()
+            .open(bpf_path.to_str().unwrap())
+            .load()?;
         println!("Loaded eBPF program for probe: {}", name);
+
         Ok(Self {
             bpf_object: Arc::new(Mutex::new(obj)),
             event_channel,
