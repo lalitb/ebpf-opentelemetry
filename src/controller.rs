@@ -18,7 +18,7 @@ pub struct Controller {
 impl Controller {
     pub fn new(event_receiver: Receiver<BPFEvent>) -> Result<Self> {
         let tracer = global::tracer_provider().tracer("ebpf_tracer");
-
+        println!("Got tracer: {:?}", tracer);
         Ok(Self {
             tracer,
             event_receiver,
