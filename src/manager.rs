@@ -1,17 +1,15 @@
-use std::sync::Arc;
-use tokio::task;
-use crate::probe::Probe;
 use crate::controller::Controller;
+use crate::probe::Probe;
 use anyhow::Result;
+use std::sync::Arc;
 use tokio::sync::Mutex;
+use tokio::task;
 
 pub struct Manager {
     probes: Vec<Arc<Probe>>,
     controller: Arc<Mutex<Controller>>,
-}  
-  use tokio::task::spawn_local;
-
-
+}
+use tokio::task::spawn_local;
 
 impl Manager {
     pub fn new(controller: Arc<Mutex<Controller>>) -> Result<Self> {
@@ -30,7 +28,7 @@ impl Manager {
             let probe = Arc::clone(probe);
             spawn_local(async move {
                 let probe_guard = probe.bpf_object.lock().await; // ✅ Lock bpf_object inside async block
-                
+
                 if let Err(e) = probe.run().await {
                     eprintln!("Probe run failed: {}", e);
                 }
@@ -38,6 +36,4 @@ impl Manager {
         }
         Ok(())
     }
-    
-    
 }

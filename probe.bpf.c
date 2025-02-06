@@ -1,5 +1,6 @@
 #include <linux/bpf.h>
 #include <bpf/bpf_helpers.h>
+#include <sys/types.h>
 
 struct {
     __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);
@@ -7,9 +8,9 @@ struct {
 } events SEC(".maps");
 
 struct event_t {
-    u64 timestamp_start;
-    u64 timestamp_end;
-    u32 pid;
+    u_int64_t timestamp_start;
+    u_int64_t timestamp_end;
+    u_int32_t pid;
     char comm[16];
 };
 

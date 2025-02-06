@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StructOffsets {
@@ -30,6 +30,8 @@ impl StructOffsets {
     }
 
     pub fn get_offset(&self, struct_name: &str, field: &str) -> Option<u64> {
-        self.offsets.get(&format!("{}.{}", struct_name, field)).copied()
+        self.offsets
+            .get(&format!("{}.{}", struct_name, field))
+            .copied()
     }
 }

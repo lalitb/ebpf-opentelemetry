@@ -1,9 +1,7 @@
-
-
-use libbpf_rs::ObjectBuilder ; // PerfBuffer};
-use tokio::sync::mpsc::Sender;
 use libbpf_rs::MapCore;
+use libbpf_rs::ObjectBuilder; // PerfBuffer};
 use std::sync::Arc;
+use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
 
 pub struct Probe {
@@ -11,9 +9,9 @@ pub struct Probe {
     event_channel: Sender<BPFEvent>,
 }
 
-use serde::{Deserialize, Serialize};
-use libbpf_rs::RingBufferBuilder;
 use anyhow::Result;
+use libbpf_rs::RingBufferBuilder;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BPFEvent {
@@ -26,7 +24,9 @@ pub struct BPFEvent {
 impl BPFEvent {
     pub fn parse(data: &[u8]) -> anyhow::Result<Self> {
         // Example deserialization logic
-        let name = String::from_utf8(data[0..16].to_vec())?.trim_end_matches('\0').to_string();
+        let name = String::from_utf8(data[0..16].to_vec())?
+            .trim_end_matches('\0')
+            .to_string();
         let pid = u32::from_ne_bytes(data[16..20].try_into()?);
         let timestamp = u64::from_ne_bytes(data[20..28].try_into()?);
 
@@ -50,15 +50,13 @@ impl Probe {
     }
 
     pub async fn run(&self) -> Result<()> {
-
         let mut ringbuf_builder = RingBufferBuilder::new();
         let bpf_object = self.bpf_object.lock().await;
-        let events_map = 
-            bpf_object
+        let events_map = bpf_object
             .maps() // ✅ Already an iterator, so use `.find()` directly
             .find(|m| m.name().to_string_lossy().as_ref() == "events")
             .expect("events map not found");
-    
+
         ringbuf_builder.add(&events_map as &dyn MapCore, |data: &[u8]| {
             match BPFEvent::parse(data) {
                 Ok(event) => {
