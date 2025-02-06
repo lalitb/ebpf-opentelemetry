@@ -28,6 +28,7 @@ impl Manager {
         let local_set = LocalSet::new(); // ✅ Create a `LocalSet`
 
         for probe in &self.probes {
+            println!("Running probe: {:?}", probe);
             let probe = Arc::clone(probe);
             local_set.spawn_local(async move {
                 let probe_guard = probe.bpf_object.lock().await; // ✅ Lock bpf_object inside async block
