@@ -3,6 +3,7 @@ use libbpf_rs::ObjectBuilder; // PerfBuffer};
 use std::sync::Arc;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
+use std::path::PathBuf;
 
 pub struct Probe {
     pub(crate) bpf_object: Arc<Mutex<libbpf_rs::Object>>,
