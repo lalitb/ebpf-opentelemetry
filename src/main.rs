@@ -11,6 +11,10 @@ use opentelemetry::global;
 use opentelemetry_sdk::trace::TracerProvider as SdkTracerProvider;
 use tracing::info;
 
+fn my_test_function() {
+    println!("🚀 my_test_function() is executing...");
+}
+
 #[tokio::main(flavor = "multi_thread")] // ✅ Multi-threaded runtime
 async fn main() -> Result<()> {
     let exporter = opentelemetry_stdout::SpanExporter::default();
@@ -19,6 +23,9 @@ async fn main() -> Result<()> {
         .build();
     global::set_tracer_provider(provider);
     info!("OpenTelemetry tracing initialized with stdout exporter");
+    sleep(Duration::from_secs(5));
+
+    my_test_function(); // ✅ eBPF will now capture this
 
     let instrumentation = Instrumentation::new()?;
     instrumentation.run().await?;
