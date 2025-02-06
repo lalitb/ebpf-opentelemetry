@@ -33,6 +33,7 @@ impl Controller {
     }
 
     fn trace(&self, event: BPFEvent) -> TraceResult<()> {
+        println!("Tracing event: {:?}", event);
         let span_name = format!("bpf_event: {}", String::from_utf8_lossy(&event.comm));
         //let span_name = event.name.clone();
         let mut span = self
