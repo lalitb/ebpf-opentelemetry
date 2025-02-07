@@ -31,18 +31,21 @@ impl Manager {
             println!("Iterating over probes...");
             let probe = Arc::clone(probe);
             local_set.spawn_local(async move {
-                println!("Spawning probe run...");
-                let probe_guard = probe.bpf_object.lock().await; // ✅ Lock bpf_object inside async block
+                let mut probe_guard = probe.lock().await;
+                if let Err(e) = probe_guard.attach().await {
+                    eprintln!("Failed to attach probe {}: {}", probe_guard.name, e);
+                    return;
+                }
+                println!("Attached probe: {}", probe_guard.name);
 
-                if let Err(e) = probe.run().await {
+                if let Err(e) = probe_guard.run().await {
                     eprintln!("Probe run failed: {}", e);
                 } else {
                     println!("Probe run initiated.");
                 }
             });
         }
-        local_set.await;  // ✅ Ensure `spawn_local()` tasks are executed
-
+        local_set.await; // ✅ Ensure `spawn_local()` tasks are executed
         Ok(())
     }
 }

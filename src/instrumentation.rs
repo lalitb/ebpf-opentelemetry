@@ -18,9 +18,11 @@ impl Instrumentation {
 
         let http_probe = Probe::new("http_request", event_sender.clone())?;
         let db_probe = Probe::new("db_query", event_sender.clone())?;
+        let target_probe = Probe::new("target_function", event_sender)?;
 
         manager.register_probe(http_probe);
         manager.register_probe(db_probe);
+        manager.register_probe(target_probe);
 
         Ok(Self {
             manager,
