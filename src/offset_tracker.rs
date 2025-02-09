@@ -28,6 +28,7 @@ impl OffsetTracker {
         println!("offset_traker::from_config_file");
         let file = File::open(path)?;
         let config: InstrumentationConfig = serde_json::from_reader(file)?;
+        println!("Parsed config: {:?}", config);
         let mut tracker = Self::default();
 
         for binary in &config.binaries {
