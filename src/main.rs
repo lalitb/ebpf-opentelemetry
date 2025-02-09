@@ -43,10 +43,9 @@ async fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    info!("Using config file: {}", config_path);
-
     println!("Using config file: {}", config_path);
     let offset_tracker = OffsetTracker::from_config_file(config_path)?;
+    println!("offset traceker initialized");
 
     for (binary, functions) in &offset_tracker.offsets {
         for (function, offset) in functions {
