@@ -31,6 +31,7 @@ impl OffsetTracker {
         let mut tracker = Self::default();
 
         for binary in &config.binaries {
+            println!("Processing binary: {}", binary.path);
             let mut file = File::open(&binary.path)?;
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer)?;
