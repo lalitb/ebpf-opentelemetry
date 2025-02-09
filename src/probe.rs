@@ -1,5 +1,6 @@
+use anyhow::Result;
 use libbpf_rs::MapCore;
-use libbpf_rs::ObjectBuilder; // PerfBuffer};
+use libbpf_rs::{ObjectBuilder, UprobeAttachType};
 use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -47,18 +48,37 @@ impl BPFEvent {
 }
 
 impl Probe {
-    pub fn new(name: &str, event_channel: Sender<BPFEvent>) -> Result<Self> {
-        let out_dir = env::var("OUT_DIR").unwrap_or_else(|_| "target/debug".to_string());
-
-        let bpf_path = PathBuf::from(out_dir).join("probe.bpf.o");
+    pub fn new(
+        binary_path: &str,
+        function_name: &str,
+        event_channel: Sender<BPFEvent>,
+        function_offset: u64,
+    ) -> Result<Self> {
+        let bpf_path = "target/debug/probe.bpf.o";
         println!("Loading eBPF program from: {:?}", bpf_path);
 
-        let open_obj = ObjectBuilder::default().open_file(bpf_path.to_str().unwrap())?;
-        let obj = open_obj.load()?;
-        println!("Loaded eBPF program for probe: {}", name);
+        let open_obj = ObjectBuilder::default().open_file(bpf_path)?.load()?;
+        println!("Loaded eBPF program for probe: {}", function_name);
+
+        let program = open_obj
+            .prog("uprobe_handler")
+            .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
+
+        program.attach_uprobe(
+            true,
+            -1,
+            binary_path,
+            function_offset as i64,
+            UprobeAttachType::Attach,
+        )?;
+
+        println!(
+            "✅ Attached eBPF probe for '{}' at offset: {:#x}",
+            function_name, function_offset
+        );
 
         Ok(Self {
-            bpf_object: Arc::new(Mutex::new(obj)),
+            bpf_object: Arc::new(Mutex::new(open_obj)),
             event_channel,
         })
     }

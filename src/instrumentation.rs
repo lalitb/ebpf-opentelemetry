@@ -1,8 +1,7 @@
 use crate::{controller::Controller, manager::Manager, probe::Probe};
 use anyhow::Result;
-use std::sync::Arc;
-use tokio::sync::mpsc;
-use tokio::sync::Mutex;
+use std::{collections::HashMap, sync::Arc};
+use tokio::sync::{mpsc, Mutex};
 
 pub struct Instrumentation {
     manager: Manager,
@@ -10,17 +9,22 @@ pub struct Instrumentation {
 }
 
 impl Instrumentation {
-    pub fn new() -> Result<Self> {
+    pub fn new(offsets: HashMap<String, HashMap<String, u64>>) -> Result<Self> {
         println!("Initializing instrumentation...");
         let (event_sender, event_receiver) = mpsc::channel(100);
-        let controller = Arc::new(Mutex::new(Controller::new(event_receiver)?)); // ✅ Wrap Controller in Arc<Mutex<>>
+        let controller = Arc::new(Mutex::new(Controller::new(event_receiver)?));
         let mut manager = Manager::new(controller.clone())?;
 
-        let http_probe = Probe::new("http_request", event_sender.clone())?;
-        let db_probe = Probe::new("db_query", event_sender.clone())?;
-
-        manager.register_probe(http_probe);
-        manager.register_probe(db_probe);
+        for (binary, functions) in &offsets {
+            for (function, &offset) in functions.iter() {
+                println!(
+                    "🔍 Attaching probe to {} in {} at {:#x}",
+                    function, binary, offset
+                );
+                let probe = Probe::new(binary, function, event_sender.clone(), offset)?;
+                manager.register_probe(probe);
+            }
+        }
 
         Ok(Self {
             manager,
@@ -32,9 +36,12 @@ impl Instrumentation {
         println!("Running instrumentation...");
         let controller = self.controller.clone();
         tokio::spawn(async move {
-            let mut controller_guard = controller.lock().await; // ✅ Lock controller for mutability
-            controller_guard.run().await.unwrap();
+            let mut controller_guard = controller.lock().await;
+            if let Err(err) = controller_guard.run().await {
+                eprintln!("Controller error: {}", err);
+            }
         });
+
         self.manager.run().await
     }
 }
