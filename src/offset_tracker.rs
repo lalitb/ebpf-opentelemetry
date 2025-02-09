@@ -42,12 +42,14 @@ impl OffsetTracker {
                 .functions
                 .iter()
                 .filter_map(|func| {
+                    println!("Searching for function: {}", func);
                     elf.syms.iter().find_map(|sym| {
                         elf.strtab.get_at(sym.st_name).and_then(|name| {
                             if name == func {
                                 println!("Found function: {}", name);
                                 Some((name.to_string(), sym.st_value))
                             } else {
+                                println!("Function {} not found", name);
                                 None
                             }
                         })
