@@ -2,20 +2,18 @@ use anyhow::Result;
 use libbpf_rs::MapCore;
 //use libbpf_rs::{ObjectBuilder, UprobeAttachType};
 use libbpf_rs::ObjectBuilder;
+use libbpf_rs::RingBufferBuilder;
+use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
-use libbpf_rs::RingBufferBuilder;
-use serde::{Deserialize, Serialize};
 
 pub struct Probe {
     pub(crate) bpf_object: Arc<Mutex<libbpf_rs::Object>>,
     event_channel: Sender<BPFEvent>,
 }
-
-
 
 #[derive(Debug, Serialize, Deserialize)]
 #[repr(C)] // Ensure correct memory layout
@@ -61,8 +59,12 @@ impl Probe {
         let open_obj = ObjectBuilder::default().open_file(bpf_path)?.load()?;
         println!("Loaded eBPF program for probe: {}", function_name);
 
+        //let program = open_obj
+        //    .prog("uprobe_handler")
+        //    .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
         let program = open_obj
-            .prog("uprobe_handler")
+            .programs()
+            .find(|p| p.name() == "uprobe_handler")
             .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
 
         program.attach_uprobe(
