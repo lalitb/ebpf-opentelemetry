@@ -1,6 +1,7 @@
 use anyhow::Result;
 use libbpf_rs::MapCore;
-use libbpf_rs::{ObjectBuilder, UprobeAttachType};
+//use libbpf_rs::{ObjectBuilder, UprobeAttachType};
+use libbpf_rs::ObjectBuilder;
 use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -69,7 +70,7 @@ impl Probe {
             -1,
             binary_path,
             function_offset as i64,
-            UprobeAttachType::Attach,
+            //UprobeAttachType::Attach,
         )?;
 
         println!(
