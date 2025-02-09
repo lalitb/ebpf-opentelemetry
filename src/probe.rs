@@ -75,7 +75,10 @@ impl Probe {
         for sym in obj_file.dynamic_symbols() {
             if let Ok(name) = sym.name() {
                 if name == function_name {
+                    println!("Found function {} at address {:#x}", name, sym.address());
                     return Ok(sym.address());
+                } else {
+                    println!("Skipping symbol: {}", name);
                 }
             }
         }
