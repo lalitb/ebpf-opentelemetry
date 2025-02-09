@@ -3,6 +3,7 @@ use libbpf_rs::MapCore;
 //use libbpf_rs::{ObjectBuilder, UprobeAttachType};
 use libbpf_rs::ObjectBuilder;
 use libbpf_rs::RingBufferBuilder;
+use libbpf_rs::UprobeOpts;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;
@@ -66,14 +67,21 @@ impl Probe {
             .progs()
             .find(|p| p.name() == "uprobe_handler")
             .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
+        let opts = UprobeOpts {
+            retprobe: true,
+            func_name: function_name.to_string(),
+            ..Default::default()
+        };
+        let _link =
+            program.attach_uprobe_with_opts(-1, binary_path, function_offset as usize, opts)?;
 
-        program.attach_uprobe(
+        /*program.attach_uprobe(
             true,
             -1,
             binary_path,
             function_offset as i64,
             //UprobeAttachType::Attach,
-        )?;
+        )?;*/
 
         println!(
             "✅ Attached eBPF probe for '{}' at offset: {:#x}",
