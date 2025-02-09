@@ -1,4 +1,3 @@
-mod analyzer;
 mod controller;
 mod instrumentation;
 mod manager;

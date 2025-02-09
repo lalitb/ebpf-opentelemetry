@@ -6,15 +6,15 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::Mutex;
+use libbpf_rs::RingBufferBuilder;
+use serde::{Deserialize, Serialize};
 
 pub struct Probe {
     pub(crate) bpf_object: Arc<Mutex<libbpf_rs::Object>>,
     event_channel: Sender<BPFEvent>,
 }
 
-use anyhow::Result;
-use libbpf_rs::RingBufferBuilder;
-use serde::{Deserialize, Serialize};
+
 
 #[derive(Debug, Serialize, Deserialize)]
 #[repr(C)] // Ensure correct memory layout
