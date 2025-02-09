@@ -63,7 +63,7 @@ impl Probe {
         //let program = open_obj
         //    .prog("uprobe_handler")
         //    .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
-        let mut program = open_obj
+        let program = open_obj
             .progs_mut()
             .find(|p| p.name() == "uprobe_handler")
             .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
