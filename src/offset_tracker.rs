@@ -36,7 +36,7 @@ impl OffsetTracker {
             file.read_to_end(&mut buffer)?;
 
             let elf = Elf::parse(&buffer).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-            println!("Parsed ELF file: {:?}", elf);
+            println!("Parsed ELF file:");
             let function_offsets = binary
                 .functions
                 .iter()
@@ -44,6 +44,7 @@ impl OffsetTracker {
                     elf.syms.iter().find_map(|sym| {
                         elf.strtab.get_at(sym.st_name).and_then(|name| {
                             if name == func {
+                                println!("Found function: {}", name);
                                 Some((name.to_string(), sym.st_value))
                             } else {
                                 None
