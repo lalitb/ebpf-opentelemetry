@@ -41,7 +41,7 @@ impl Manager {
                 }
             });
         }
-        local_set.await;  // ✅ Ensure `spawn_local()` tasks are executed
+        local_set.await; // ✅ Ensure `spawn_local()` tasks are executed
 
         Ok(())
     }
