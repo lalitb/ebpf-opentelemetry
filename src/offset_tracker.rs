@@ -25,6 +25,7 @@ pub struct OffsetTracker {
 
 impl OffsetTracker {
     pub fn from_config_file<P: AsRef<Path>>(path: P) -> io::Result<Self> {
+        println!("Reading config file: {:?}", path);
         let file = File::open(path)?;
         let config: InstrumentationConfig = serde_json::from_reader(file)?;
         let mut tracker = Self::default();
@@ -35,6 +36,7 @@ impl OffsetTracker {
             file.read_to_end(&mut buffer)?;
 
             let elf = Elf::parse(&buffer).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+            println!("Parsed ELF file: {:?}", elf);
             let function_offsets = binary
                 .functions
                 .iter()
