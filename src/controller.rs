@@ -50,13 +50,13 @@ impl Controller {
             ])
             .start(&self.tracer);
 
-        info!(
-            "Captured event: pid={}, comm={}, start={}, end={}",
-            event.pid,
-            String::from_utf8_lossy(&event.comm),
-            event.timestamp_start,
-            event.timestamp_end
-        );
+            info!(
+                "Captured event: pid={}, comm={}, start={}, end={}",
+                event.pid,
+                String::from_utf8_lossy(&event.comm),
+                event.timestamp_start,
+                event.timestamp_end
+            );
 
         info!("Captured event: {:?}", event);
         span.end();

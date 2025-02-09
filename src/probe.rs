@@ -9,8 +9,6 @@ use tokio::sync::Mutex;
 pub struct Probe {
     pub(crate) bpf_object: Arc<Mutex<libbpf_rs::Object>>,
     event_channel: Sender<BPFEvent>,
-    links: Vec<Link>,
-    name: String,
 }
 
 use anyhow::Result;
@@ -62,59 +60,7 @@ impl Probe {
         Ok(Self {
             bpf_object: Arc::new(Mutex::new(obj)),
             event_channel,
-            links: Vec::new(),
-            name: name.to_string(),
         })
-    }
-
-    fn find_function_offset(function_name: &str) -> Result<u64> {
-        let binary_path = std::env::current_exe()?;
-        let binary_data = fs::read(&binary_path)?;
-        let obj_file = object::File::parse(&*binary_data)?;
-
-        for sym in obj_file.dynamic_symbols() {
-            if let Ok(name) = sym.name() {
-                if name == function_name {
-                    println!("Found function {} at address {:#x}", name, sym.address());
-                    return Ok(sym.address());
-                } else {
-                    println!("Skipping symbol: {}", name);
-                }
-            }
-        }
-        Err(anyhow::anyhow!("Function {} not found", function_name))
-    }
-
-    pub async fn attach(&mut self) -> Result<()> {
-        if self.name == "target_function" {
-            self.attach_target_function().await?;
-        }
-        // Add other probe attachments here if needed
-        Ok(())
-    }
-
-    async fn attach_target_function(&mut self) -> Result<()> {
-        let bpf_object = self.bpf_object.lock().await;
-        let binary_path = std::env::current_exe()?;
-
-        let offset = Self::find_function_offset("target_function")?;
-        println!("Found target_function at offset: {:#x}", offset);
-
-        // Attach uprobe
-        if let Some(prog) = bpf_object.prog("trace_enter") {
-            let link = prog.attach_uprobe(-1, binary_path.to_str().unwrap(), offset)?;
-            self.links.push(link);
-            println!("Attached uprobe successfully");
-        }
-
-        // Attach uretprobe
-        if let Some(prog) = bpf_object.prog("trace_exit") {
-            let link = prog.attach_uretprobe(-1, binary_path.to_str().unwrap(), offset)?;
-            self.links.push(link);
-            println!("Attached uretprobe successfully");
-        }
-
-        Ok(())
     }
 
     pub async fn run(&self) -> Result<()> {

@@ -9,8 +9,8 @@ use anyhow::Result;
 use instrumentation::Instrumentation;
 use opentelemetry::global;
 use opentelemetry_sdk::trace::TracerProvider as SdkTracerProvider;
-use std::{thread::sleep, time::Duration};
 use tracing::info;
+use std::{thread::sleep, time::Duration};
 
 #[inline(never)]
 fn target_function() {
