@@ -50,7 +50,6 @@ impl OffsetTracker {
                                 println!("Found function: {}", name);
                                 Some((name.to_string(), sym.st_value))
                             } else {
-                                println!("Function {} not found", name);
                                 None
                             }
                         })
