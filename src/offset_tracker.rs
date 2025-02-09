@@ -34,7 +34,7 @@ impl OffsetTracker {
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer)?;
 
-            let elf = Elf::parse(&buffer)?;
+            let elf = Elf::parse(&buffer).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
             let function_offsets = binary
                 .functions
                 .iter()
