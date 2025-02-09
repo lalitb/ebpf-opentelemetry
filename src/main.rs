@@ -9,7 +9,7 @@ use instrumentation::Instrumentation;
 use offset_tracker::OffsetTracker;
 use opentelemetry::global;
 use opentelemetry_sdk::trace::TracerProvider as SdkTracerProvider;
-use std::{env, thread::sleep, time::Duration};
+use std::{env, fs, thread::sleep, time::Duration};
 use tracing::info;
 
 #[tokio::main(flavor = "multi_thread")] // ✅ Multi-threaded runtime
