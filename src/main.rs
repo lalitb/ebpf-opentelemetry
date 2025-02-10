@@ -48,15 +48,15 @@ async fn main() -> Result<()> {
     println!("offset traceker initialized");
 
     for (binary, functions) in &offset_tracker.offsets {
-        for (function, offset) in functions {
+        for (function, function_info) in functions {
             println!(
                 "✅ Found function offset for '{}' in '{}': {:#x}",
-                function, binary, offset
+                function_info.demangled_name, binary, function_info.offset
             );
         }
     }
 
-    let instrumentation = Instrumentation::new(offset_tracker.offsets.clone())?;
+    let instrumentation = Instrumentation::new(&offset_tracker)?;
     instrumentation.run().await?;
     Ok(())
 }

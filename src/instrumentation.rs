@@ -1,4 +1,6 @@
-use crate::{controller::Controller, manager::Manager, probe::Probe};
+use crate::{
+    controller::Controller, manager::Manager, offset_tracker::OffsetTracker, probe::Probe,
+};
 use anyhow::Result;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::{mpsc, Mutex};
@@ -9,19 +11,24 @@ pub struct Instrumentation {
 }
 
 impl Instrumentation {
-    pub fn new(offsets: HashMap<String, HashMap<String, u64>>) -> Result<Self> {
+    pub fn new(offset_tracker: &OffsetTracker) -> Result<Self> {
         println!("Initializing instrumentation...");
         let (event_sender, event_receiver) = mpsc::channel(100);
         let controller = Arc::new(Mutex::new(Controller::new(event_receiver)?));
         let mut manager = Manager::new(controller.clone())?;
 
-        for (binary, functions) in &offsets {
-            for (function, &offset) in functions.iter() {
+        for (binary, functions) in &offset_tracker.offsets {
+            for (demangled_name, function_info) in functions.iter() {
                 println!(
                     "🔍 Attaching probe to {} in {} at {:#x}",
-                    function, binary, offset
+                    demangled_name, binary, function_info.offset
                 );
-                let probe = Probe::new(binary, function, event_sender.clone(), offset)?;
+                let probe = Probe::new(
+                    binary,
+                    &function_info.mangled_name, // Use mangled name for probe
+                    event_sender.clone(),
+                    function_info.offset,
+                )?;
                 manager.register_probe(probe);
             }
         }

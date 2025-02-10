@@ -9,6 +9,13 @@ use std::{
     path::Path,
 };
 
+#[derive(Debug)]
+pub struct FunctionInfo {
+    pub demangled_name: String,
+    pub mangled_name: String,
+    pub offset: u64,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BinaryConfig {
     pub path: String,
@@ -22,7 +29,7 @@ pub struct InstrumentationConfig {
 
 #[derive(Debug, Default)]
 pub struct OffsetTracker {
-    pub offsets: HashMap<String, HashMap<String, u64>>, // {binary: {function: offset}}
+    pub offsets: HashMap<String, HashMap<String, FunctionInfo>>, // {binary: {function: offset}}
 }
 
 impl OffsetTracker {
@@ -48,7 +55,7 @@ impl OffsetTracker {
                 .syms
                 .iter()
                 .filter_map(|sym| {
-                    if let Some(name) = elf.strtab.get_at(sym.st_name) {
+                    if let Some(mangled_name) = elf.strtab.get_at(sym.st_name) {
                         let demangled = demangle(name).to_string(); // Demangle Rust symbol
                         let cleaned_name = hex_suffix_regex.replace(&demangled, "").to_string(); // Remove hex suffix
                         if binary.functions.contains(&cleaned_name) {
@@ -56,7 +63,14 @@ impl OffsetTracker {
                                 "✅ Matched function: {} at offset {:#x}",
                                 cleaned_name, sym.st_value
                             );
-                            Some((cleaned_name, sym.st_value))
+                            Some((
+                                cleaned_name,
+                                FunctionInfo {
+                                    demangled_name: cleaned_name.clone(),
+                                    mangled_name: mangled_name.to_string(),
+                                    offset: sym.st_value,
+                                },
+                            ))
                         } else {
                             None
                         }
@@ -64,7 +78,7 @@ impl OffsetTracker {
                         None
                     }
                 })
-                .collect::<HashMap<String, u64>>();
+                .collect::<HashMap<String, FunctionInfo>>();
 
             tracker
                 .offsets
@@ -72,6 +86,21 @@ impl OffsetTracker {
         }
 
         Ok(tracker)
+    }
+    // Helper method to get mangled name for a function
+    pub fn get_mangled_name(&self, binary_path: &str, demangled_name: &str) -> Option<&str> {
+        self.offsets
+            .get(binary_path)
+            .and_then(|funcs| funcs.get(demangled_name))
+            .map(|info| info.mangled_name.as_str())
+    }
+
+    // Helper method to get offset for a function
+    pub fn get_offset(&self, binary_path: &str, demangled_name: &str) -> Option<u64> {
+        self.offsets
+            .get(binary_path)
+            .and_then(|funcs| funcs.get(demangled_name))
+            .map(|info| info.offset)
     }
 }
 
