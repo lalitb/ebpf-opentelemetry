@@ -77,6 +77,7 @@ impl Probe {
             func_name: function_name.to_string(),
             ..Default::default()
         };
+        println!("Attaching uprobe for function: {:?} at offset {:?}", function_name, function_offset);
         let _link =
             program.attach_uprobe_with_opts(-1, binary_path, function_offset as usize, opts)?;
 
