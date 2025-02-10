@@ -1,4 +1,5 @@
 use goblin::elf::Elf;
+use rustc_demangle::demangle;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -45,14 +46,22 @@ impl OffsetTracker {
                 .filter_map(|func| {
                     println!("Searching for function: {}", func);
                     elf.syms.iter().find_map(|sym| {
-                        elf.strtab.get_at(sym.st_name).and_then(|name| {
-                            if name == func {
-                                println!("Found function: {}", name);
-                                Some((name.to_string(), sym.st_value))
+                        if let Some(name) = elf.strtab.get_at(sym.st_name) {
+                            let demangled = demangle(name).to_string(); // Demangle Rust symbol
+                            println!("Found ELF symbol: {} -> Demangled: {}", name, demangled);
+
+                            if demangled == *func {
+                                println!(
+                                    "✅ Matched function: {} at offset {:#x}",
+                                    demangled, sym.st_value
+                                );
+                                Some((demangled, sym.st_value))
                             } else {
                                 None
                             }
-                        })
+                        } else {
+                            None
+                        }
                     })
                 })
                 .collect::<HashMap<String, u64>>();
