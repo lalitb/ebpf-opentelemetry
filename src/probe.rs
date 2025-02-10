@@ -136,7 +136,7 @@ impl Probe {
             .maps() // ✅ Already an iterator, so use `.find()` directly
             .find(|m| m.name().to_string_lossy().as_ref() == "events")
             .expect("events map not found");
-
+        println!("Found events map: {:?}", events_map.name());
         ringbuf_builder.add(&events_map as &dyn MapCore, |data: &[u8]| {
             println!("Received data: {:?}", data);
             match BPFEvent::parse(data) {
