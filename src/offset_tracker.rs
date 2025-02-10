@@ -1,4 +1,5 @@
 use goblin::elf::Elf;
+use regex::Regex;
 use rustc_demangle::demangle;
 use serde::{Deserialize, Serialize};
 use std::{
