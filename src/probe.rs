@@ -78,7 +78,7 @@ impl Probe {
             ..Default::default()
         };
         println!(
-            "Attaching uprobe for function: {:?} at offset {:?}",
+            "Attaching uprobe for function: {:?} at offset {:#x}",
             function_name, function_offset
         );
         let _entry_link = entry_program.attach_uprobe_with_opts(
@@ -106,7 +106,7 @@ impl Probe {
         };
 
         println!(
-            "Attaching return uprobe for function: {:?} at offset {:?}",
+            "Attaching return uprobe for function: {:?} at offset {:#x}",
             function_name, function_offset
         );
 
