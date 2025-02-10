@@ -138,6 +138,7 @@ impl Probe {
             .expect("events map not found");
 
         ringbuf_builder.add(&events_map as &dyn MapCore, |data: &[u8]| {
+            println!("Received data: {:?}", data);
             match BPFEvent::parse(data) {
                 Ok(event) => {
                     println!("====> GOT Event {:?}", event);
