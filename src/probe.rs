@@ -140,6 +140,7 @@ impl Probe {
         ringbuf_builder.add(&events_map as &dyn MapCore, |data: &[u8]| {
             match BPFEvent::parse(data) {
                 Ok(event) => {
+                    println!("====> GOT Event {:?}", event);
                     // Use a blocking send here since we're in a non-async context
                     if let Err(err) = self.event_channel.blocking_send(event) {
                         eprintln!("Failed to send event: {}", err);
