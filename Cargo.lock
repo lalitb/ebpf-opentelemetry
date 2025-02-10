@@ -181,6 +181,8 @@ dependencies = [
  "opentelemetry-stdout",
  "opentelemetry_sdk",
  "proc-maps",
+ "regex",
+ "rustc-demangle",
  "serde",
  "serde_json",
  "tokio",

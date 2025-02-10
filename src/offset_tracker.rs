@@ -50,7 +50,7 @@ impl OffsetTracker {
                 .filter_map(|sym| {
                     if let Some(name) = elf.strtab.get_at(sym.st_name) {
                         let demangled = demangle(name).to_string(); // Demangle Rust symbol
-                                                                    // Match exactly with config.json
+                        let cleaned_name = hex_suffix_regex.replace(&demangled, "").to_string(); // Remove hex suffix
                         if binary.functions.contains(&cleaned_name) {
                             println!(
                                 "✅ Matched function: {} at offset {:#x}",
