@@ -129,14 +129,14 @@ impl Probe {
     }
 
     pub async fn run(&self) -> Result<()> {
-        println!("Running probe...");
+        println!("-----> Running probe...");
         let mut ringbuf_builder = RingBufferBuilder::new();
         let bpf_object = self.bpf_object.lock().await;
         let events_map = bpf_object
             .maps() // ✅ Already an iterator, so use `.find()` directly
             .find(|m| m.name().to_string_lossy().as_ref() == "events")
             .expect("events map not found");
-        println!("Found events map: {:?}", events_map.name());
+        println!("---> Found events map: {:?}", events_map.name());
         ringbuf_builder.add(&events_map as &dyn MapCore, |data: &[u8]| {
             println!("Received data: {:?}", data);
             match BPFEvent::parse(data) {
