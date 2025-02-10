@@ -68,12 +68,12 @@ impl Probe {
         //let program = open_obj
         //    .prog("uprobe_handler")
         //    .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
-        let program = open_obj
+        let entry_program = open_obj
             .progs_mut()
             .find(|p| p.name() == "trace_enter")
-            .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
-        let opts = UprobeOpts {
-            retprobe: true,
+            .ok_or_else(|| anyhow::anyhow!("Failed to find entry probe"))?;
+        let entry_opts = UprobeOpts {
+            retprobe: false,
             func_name: function_name.to_string(),
             ..Default::default()
         };
@@ -81,19 +81,44 @@ impl Probe {
             "Attaching uprobe for function: {:?} at offset {:?}",
             function_name, function_offset
         );
-        let _link =
-            program.attach_uprobe_with_opts(-1, binary_path, function_offset as usize, opts)?;
-
-        /*program.attach_uprobe(
-            true,
+        let _entry_link = entry_program.attach_uprobe_with_opts(
             -1,
             binary_path,
-            function_offset as i64,
-            //UprobeAttachType::Attach,
-        )?;*/
+            function_offset as usize,
+            entry_opts,
+        )?;
 
         println!(
             "✅ Attached eBPF probe for '{}' at offset: {:#x}",
+            function_name, function_offset
+        );
+
+        // Attach return probe
+        let ret_program = open_obj
+            .progs_mut()
+            .find(|p| p.name() == "trace_exit")
+            .ok_or_else(|| anyhow::anyhow!("Failed to find return probe"))?;
+
+        let ret_opts = UprobeOpts {
+            retprobe: true, // Return probe
+            func_name: function_name.to_string(),
+            ..Default::default()
+        };
+
+        println!(
+            "Attaching return uprobe for function: {:?} at offset {:?}",
+            function_name, function_offset
+        );
+
+        let _ret_link = ret_program.attach_uprobe_with_opts(
+            -1,
+            binary_path,
+            function_offset as usize,
+            ret_opts,
+        )?;
+
+        println!(
+            "✅ Attached eBPF probes for '{}' at offset: {:#x}",
             function_name, function_offset
         );
 
