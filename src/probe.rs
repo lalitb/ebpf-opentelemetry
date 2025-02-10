@@ -62,7 +62,7 @@ impl Probe {
 
         println!("Available eBPF programs:");
         for prog in open_obj.progs() {
-            println!("- {}", prog.name());
+            println!("- {:?}", prog.name());
         }
 
         //let program = open_obj
