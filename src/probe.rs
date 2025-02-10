@@ -70,7 +70,7 @@ impl Probe {
         //    .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
         let program = open_obj
             .progs_mut()
-            .find(|p| p.name() == "uprobe")
+            .find(|p| p.name() == "trace_enter")
             .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
         let opts = UprobeOpts {
             retprobe: true,
