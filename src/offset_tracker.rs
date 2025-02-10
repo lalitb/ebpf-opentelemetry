@@ -40,16 +40,8 @@ impl OffsetTracker {
 
             let elf = Elf::parse(&buffer).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
             println!("Parsed ELF file:");
-            // Normalize function names from config.json
-            let normalized_funcs: Vec<String> =
-                binary.functions.iter().map(|f| f.to_string()).collect();
-            println!("Normalized functions: {:?}", normalized_funcs);
-            let short_names: Vec<String> = binary
-                .functions
-                .iter()
-                .map(|f| f.split("::").last().unwrap().to_string())
-                .collect();
-            println!("Short function names: {:?}", short_names);
+            let hex_suffix_regex = Regex::new(r"::h[0-9a-f]+$").unwrap(); // Regex to remove hash suffixes
+
             // Store function offsets after demangling Rust symbols
             let function_offsets = elf
                 .syms
@@ -57,20 +49,13 @@ impl OffsetTracker {
                 .filter_map(|sym| {
                     if let Some(name) = elf.strtab.get_at(sym.st_name) {
                         let demangled = demangle(name).to_string(); // Demangle Rust symbol
-                        let func_name = demangled.split("::").last().unwrap().to_string(); // Extract function name
-                                                                                           //println!(
-                                                                                           //    "Found ELF symbol: {} -> Demangled: {} (Extracted Name: {})",
-                                                                                           //    name, demangled, func_name
-                                                                                           //);
-
-                        // Match either the full namespace or short function name
-                        if normalized_funcs.contains(&demangled) || short_names.contains(&func_name)
-                        {
+                                                                    // Match exactly with config.json
+                        if binary.functions.contains(&cleaned_name) {
                             println!(
                                 "✅ Matched function: {} at offset {:#x}",
-                                demangled, sym.st_value
+                                cleaned_name, sym.st_value
                             );
-                            Some((demangled, sym.st_value))
+                            Some((cleaned_name, sym.st_value))
                         } else {
                             None
                         }
