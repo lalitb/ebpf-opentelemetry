@@ -60,6 +60,11 @@ impl Probe {
         let open_obj = ObjectBuilder::default().open_file(bpf_path)?.load()?;
         println!("Loaded eBPF program for probe: {}", function_name);
 
+        println!("Available eBPF programs:");
+        for prog in open_obj.progs() {
+            println!("- {}", prog.name());
+        }
+
         //let program = open_obj
         //    .prog("uprobe_handler")
         //    .ok_or_else(|| anyhow::anyhow!("Failed to find uprobe handler"))?;
