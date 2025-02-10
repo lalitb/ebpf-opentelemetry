@@ -132,7 +132,12 @@ impl Probe {
         println!("-----> Running probe...");
         let mut ringbuf_builder = RingBufferBuilder::new();
         println!("---> Got ringbuf builder: {:?}", ringbuf_builder);
-        let bpf_object = self.bpf_object.lock().await;
+        //let bpf_object = self.bpf_object.lock().await;
+        if let Ok(bpf_object) = self.bpf_object.try_lock() {
+            println!("Got bpf_object lock: {:?}", bpf_object);
+        } else {
+            panic!("Failed to get bpf_object lock, another task is holding it.");
+        }
         println!("---> Got bpf object: {:?}", bpf_object);
         let events_map = bpf_object
             .maps() // ✅ Already an iterator, so use `.find()` directly
