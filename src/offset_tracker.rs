@@ -56,7 +56,7 @@ impl OffsetTracker {
                 .iter()
                 .filter_map(|sym| {
                     if let Some(mangled_name) = elf.strtab.get_at(sym.st_name) {
-                        let demangled = demangle(name).to_string(); // Demangle Rust symbol
+                        let demangled = demangle(mangled_name).to_string(); // Demangle Rust symbol
                         let cleaned_name = hex_suffix_regex.replace(&demangled, "").to_string(); // Remove hex suffix
                         if binary.functions.contains(&cleaned_name) {
                             println!(
@@ -64,9 +64,9 @@ impl OffsetTracker {
                                 cleaned_name, sym.st_value
                             );
                             Some((
-                                cleaned_name,
+                                cleaned_name.clone(),
                                 FunctionInfo {
-                                    demangled_name: cleaned_name.clone(),
+                                    demangled_name: cleaned_name,
                                     mangled_name: mangled_name.to_string(),
                                     offset: sym.st_value,
                                 },
