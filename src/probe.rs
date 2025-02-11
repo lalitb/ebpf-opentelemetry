@@ -160,7 +160,7 @@ impl Probe {
 
         let ringbuf = ringbuf_builder.build()?;
         drop(bpf_object);
-        
+
         println!("---> Polling ring buffer...");
 
         loop {

@@ -48,12 +48,14 @@ static __always_inline void submit_exit_event(struct pt_regs *ctx) {
 
 SEC("uprobe/trace_enter")
 int trace_enter(struct pt_regs *ctx) {
+    bpf_printk("Enter probe triggered\n"); 
     submit_enter_event(ctx);
     return 0;
 }
 
 SEC("uretprobe/trace_exit")
 int trace_exit(struct pt_regs *ctx) {
+    bpf_printk("Exit probe triggered\n");
     submit_exit_event(ctx);
     return 0;
 }
