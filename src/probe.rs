@@ -160,9 +160,10 @@ impl Probe {
 
         let ringbuf = ringbuf_builder.build()?;
         drop(bpf_object);
+        
+        println!("---> Polling ring buffer...");
 
         loop {
-            println!("---> Polling ring buffer...");
             ringbuf.poll(std::time::Duration::from_millis(100))?;
         }
     }
