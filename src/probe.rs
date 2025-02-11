@@ -58,7 +58,6 @@ impl Probe {
         println!("Loading eBPF program from: {:?}", bpf_path);
 
         let open_obj = ObjectBuilder::default().open_file(bpf_path)?.load()?;
-        let bpf_object = Arc::new(Mutex::new(open_obj));
 
         println!("Loaded eBPF program for probe: {}", function_name);
 
@@ -123,6 +122,7 @@ impl Probe {
             "✅ Attached eBPF probes for '{}' at offset: {:#x}",
             function_name, function_offset
         );
+        let bpf_object = Arc::new(Mutex::new(open_obj));
 
         Ok(Self {
             bpf_object,
