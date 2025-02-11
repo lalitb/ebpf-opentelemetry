@@ -135,35 +135,34 @@ impl Probe {
         let mut ringbuf_builder = RingBufferBuilder::new();
         println!("---> Got ringbuf builder: {:?}", ringbuf_builder);
 
-        if let Ok(mut bpf_object) = self.bpf_object.try_lock() {
-            println!("Got bpf_object lock: {:?}", bpf_object);
-            println!("---> Got bpf object: {:?}", bpf_object);
-            let events_map = bpf_object
-                .maps()
-                .find(|m| m.name().to_string_lossy().as_ref() == "events")
-                .expect("events map not found");
-            println!("---> Found events map: {:?}", events_map.name());
-            ringbuf_builder.add(&events_map as &dyn MapCore, |data: &[u8]| {
-                println!("Received data: {:?}", data);
-                match BPFEvent::parse(data) {
-                    Ok(event) => {
-                        println!("====> GOT Event {:?}", event);
-                        if let Err(err) = self.event_channel.blocking_send(event) {
-                            eprintln!("Failed to send event: {}", err);
-                        }
+        // Try locking bpf_object once to configure the ring buffer
+        let mut bpf_object = self.bpf_object.lock().await;
+        println!("probe_run Got bpf_object lock: {:?}", bpf_object);
+
+        let events_map = bpf_object
+            .maps()
+            .find(|m| m.name().to_string_lossy().as_ref() == "events")
+            .expect("events map not found");
+        println!("---> Found events map: {:?}", events_map.name());
+        ringbuf_builder.add(&events_map as &dyn MapCore, |data: &[u8]| {
+            println!("Received data: {:?}", data);
+            match BPFEvent::parse(data) {
+                Ok(event) => {
+                    println!("====> GOT Event {:?}", event);
+                    if let Err(err) = self.event_channel.blocking_send(event) {
+                        eprintln!("Failed to send event: {}", err);
                     }
-                    Err(err) => eprintln!("Failed to parse BPF event: {}", err),
                 }
-                0
-            })?;
-
-            let ringbuf = ringbuf_builder.build()?;
-
-            loop {
-                ringbuf.poll(std::time::Duration::from_millis(100))?;
+                Err(err) => eprintln!("Failed to parse BPF event: {}", err),
             }
-        } else {
-            panic!("Failed to get bpf_object lock, another task is holding it.");
+            0
+        })?;
+
+        let ringbuf = ringbuf_builder.build()?;
+        drop(bpf_object);
+
+        loop {
+            ringbuf.poll(std::time::Duration::from_millis(100))?;
         }
     }
 
