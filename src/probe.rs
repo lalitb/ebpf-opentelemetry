@@ -60,13 +60,13 @@ impl Probe {
         let mut bpf_object = ObjectBuilder::default().open_file(bpf_path)?;
         println!("BPF object before loading - programs:");
         for prog in bpf_object.progs() {
-            println!("Pre-load prog: {} Type: {:?}", prog.name(), prog.prog_type());
+            println!("Pre-load prog: {:?} Type: {:?}", prog.name(), prog.prog_type());
         }
         
         let open_obj = bpf_object.load()?;
         println!("BPF object after loading - programs:");
         for prog in open_obj.progs() {
-            println!("Post-load prog: {} Type: {:?}", prog.name(), prog.prog_type());
+            println!("Post-load prog: {:?} Type: {:?}", prog.name(), prog.prog_type());
         }
 
         println!("Loaded eBPF program for probe: {}", function_name);
@@ -100,7 +100,7 @@ impl Probe {
         )?;
 
         println!(
-            "✅ Attached eBPF probe for '{}' at offset: {:#x}",
+            "✅ Attached eBPF probe for '{:?}' at offset: {:#x}",
             function_name, function_offset
         );
 
