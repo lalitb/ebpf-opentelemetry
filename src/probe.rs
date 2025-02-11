@@ -132,38 +132,36 @@ impl Probe {
         println!("-----> Running probe...");
         let mut ringbuf_builder = RingBufferBuilder::new();
         println!("---> Got ringbuf builder: {:?}", ringbuf_builder);
-        //let bpf_object = self.bpf_object.lock().await;
-        if let Ok(bpf_object) = self.bpf_object.try_lock() {
+
+        if let Ok(mut bpf_object) = self.bpf_object.try_lock() {
             println!("Got bpf_object lock: {:?}", bpf_object);
+            println!("---> Got bpf object: {:?}", bpf_object);
+            let events_map = bpf_object
+                .maps()
+                .find(|m| m.name().to_string_lossy().as_ref() == "events")
+                .expect("events map not found");
+            println!("---> Found events map: {:?}", events_map.name());
+            ringbuf_builder.add(&events_map as &dyn MapCore, |data: &[u8]| {
+                println!("Received data: {:?}", data);
+                match BPFEvent::parse(data) {
+                    Ok(event) => {
+                        println!("====> GOT Event {:?}", event);
+                        if let Err(err) = self.event_channel.blocking_send(event) {
+                            eprintln!("Failed to send event: {}", err);
+                        }
+                    }
+                    Err(err) => eprintln!("Failed to parse BPF event: {}", err),
+                }
+                0
+            })?;
+
+            let ringbuf = ringbuf_builder.build()?;
+
+            loop {
+                ringbuf.poll(std::time::Duration::from_millis(100))?;
+            }
         } else {
             panic!("Failed to get bpf_object lock, another task is holding it.");
-        }
-        println!("---> Got bpf object: {:?}", bpf_object);
-        let events_map = bpf_object
-            .maps() // ✅ Already an iterator, so use `.find()` directly
-            .find(|m| m.name().to_string_lossy().as_ref() == "events")
-            .expect("events map not found");
-        println!("---> Found events map: {:?}", events_map.name());
-        ringbuf_builder.add(&events_map as &dyn MapCore, |data: &[u8]| {
-            println!("Received data: {:?}", data);
-            match BPFEvent::parse(data) {
-                Ok(event) => {
-                    println!("====> GOT Event {:?}", event);
-                    // Use a blocking send here since we're in a non-async context
-                    if let Err(err) = self.event_channel.blocking_send(event) {
-                        eprintln!("Failed to send event: {}", err);
-                    }
-                }
-                Err(err) => eprintln!("Failed to parse BPF event: {}", err),
-            }
-            // Return 0 to indicate success
-            0
-        })?;
-
-        let ringbuf = ringbuf_builder.build()?;
-
-        loop {
-            ringbuf.poll(std::time::Duration::from_millis(100))?;
         }
     }
 
