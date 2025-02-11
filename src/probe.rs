@@ -162,6 +162,7 @@ impl Probe {
         drop(bpf_object);
 
         loop {
+            println!("---> Polling ring buffer...");
             ringbuf.poll(std::time::Duration::from_millis(100))?;
         }
     }
