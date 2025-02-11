@@ -57,7 +57,17 @@ impl Probe {
         let bpf_path = "target/debug/probe.bpf.o";
         println!("Loading eBPF program from: {:?}", bpf_path);
 
-        let open_obj = ObjectBuilder::default().open_file(bpf_path)?.load()?;
+        let mut bpf_object = ObjectBuilder::default().open_file(bpf_path)?;
+        println!("BPF object before loading - programs:");
+        for prog in bpf_object.progs() {
+            println!("Pre-load prog: {} Type: {:?}", prog.name(), prog.prog_type());
+        }
+        
+        let open_obj = bpf_object.load()?;
+        println!("BPF object after loading - programs:");
+        for prog in open_obj.progs() {
+            println!("Post-load prog: {} Type: {:?}", prog.name(), prog.prog_type());
+        }
 
         println!("Loaded eBPF program for probe: {}", function_name);
 
@@ -75,7 +85,7 @@ impl Probe {
             .ok_or_else(|| anyhow::anyhow!("Failed to find entry probe"))?;
         let entry_opts = UprobeOpts {
             retprobe: false,
-            func_name: function_name.to_string(),
+            func_name: function_name.to_string(),            
             ..Default::default()
         };
         println!(
